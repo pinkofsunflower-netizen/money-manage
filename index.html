@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สมุดรับจ่าย</title>
+<meta name="theme-color" content="#0E5C5F">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1EE;--surface:#FFFFFF;--surface2:#F4F7F5;--ink:#17201F;--muted:#5B6966;--line:#D5DED9;
+  --accent:#0E5C5F;--accent-ink:#FFFFFF;--in:#16803E;--out:#B4233C;--warn-bg:#FFF2CC;--warn-ink:#5E4500;
+  color-scheme:light;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1514;--surface:#182120;--surface2:#1F2A28;--ink:#E4ECE9;--muted:#94A4A0;--line:#2B3836;
+    --accent:#5FB7B4;--accent-ink:#062223;--in:#52D088;--out:#FF7B8F;--warn-bg:#3A2F0E;--warn-ink:#F3D88A;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1514;--surface:#182120;--surface2:#1F2A28;--ink:#E4ECE9;--muted:#94A4A0;--line:#2B3836;
+  --accent:#5FB7B4;--accent-ink:#062223;--in:#52D088;--out:#FF7B8F;--warn-bg:#3A2F0E;--warn-ink:#F3D88A;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Anuphan","Noto Sans Thai","Leelawadee UI","Thonburi",system-ui,sans-serif;font-size:16px;line-height:1.55;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+img{max-width:100%}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
+.top .wrap{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.brand{font-weight:700;font-size:1.1rem;letter-spacing:.01em}
+.monthnav{display:flex;align-items:center;gap:4px}
+.monthnav[hidden]{display:flex;visibility:hidden}
+.monthnav span{min-width:9.5em;text-align:center;font-weight:600}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:1.2rem;line-height:1}
+
+main{max-width:760px;margin:0 auto;padding:4px 16px calc(96px + env(safe-area-inset-bottom,0px))}
+h1{font-size:1.5rem;margin:8px 0 4px;line-height:1.3}
+h2{font-size:1.05rem;margin:28px 0 8px}
+.lede{color:var(--muted);margin:0 0 16px;max-width:60ch}
+.banner{max-width:760px;margin:0 auto 8px;padding:0 16px}
+.banner p{margin:0;padding:10px 14px;border-radius:12px;background:var(--warn-bg);color:var(--warn-ink);font-size:.92rem}
+
+/* passbook */
+.book{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:8px}
+.book-head{background:var(--accent);color:var(--accent-ink);padding:16px 20px 18px}
+.book-head small{display:block;opacity:.85;font-size:.9rem}
+.bal{font-size:clamp(2.1rem,10vw,2.9rem);font-weight:700;line-height:1.15;letter-spacing:-.01em}
+.book-body{padding:4px 20px 8px;background-image:repeating-linear-gradient(to bottom,transparent 0 43px,var(--line) 43px 44px)}
+.bline{display:flex;justify-content:space-between;align-items:center;height:44px;gap:12px}
+.bline b{font-weight:600}
+.pos{color:var(--in)} .neg{color:var(--out)}
+
+.notice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px dashed var(--accent)}
+.notice p{margin:0}
+
+.bars{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 16px}
+.bar-row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.bar-row:last-child{border-bottom:0}
+.bar-track{grid-column:1/-1;height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.empty-line{padding:14px 0;color:var(--muted);margin:0}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{padding:10px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--muted);font-size:.88rem}
+tr:last-child td{border-bottom:0}
+tr.cur td{background:var(--surface2);font-weight:600}
+tr[data-act]{cursor:pointer}
+
+/* upload */
+.drop{width:100%;border:2px dashed var(--line);border-radius:20px;background:var(--surface);padding:40px 20px;display:grid;justify-items:center;gap:8px;text-align:center}
+.drop.over{border-color:var(--accent);background:var(--surface2)}
+.drop svg{width:44px;height:44px;color:var(--accent)}
+.drop strong{font-size:1.15rem}
+.progress{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line)}
+.alt{margin-top:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted)}
+
+/* buttons */
+.primary,.ghost{border-radius:12px;padding:10px 16px;font-weight:600;border:1px solid transparent}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;border-color:var(--line)}
+.danger{color:var(--out)}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+/* forms */
+.field{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.amt{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:4px 12px}
+.amt span{font-size:1.3rem;color:var(--muted)}
+.amt input{border:0;background:transparent;width:100%;font-size:1.5rem;font-weight:600;padding:6px 0;outline:none}
+.amt:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:8px 16px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"][data-t="expense"]{background:var(--out);color:#fff}
+.seg button[aria-pressed="true"][data-t="income"]{background:var(--in);color:#fff}
+.seg button[aria-pressed="true"]:not([data-t]){background:var(--ink);color:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.95rem}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.add{border-style:dashed;color:var(--accent)}
+.stack{display:grid;gap:10px}
+.lbl{font-size:.88rem;color:var(--muted);margin-bottom:-4px}
+.row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.row .spacer{flex:1}
+
+/* pending */
+.pcard{display:grid;grid-template-columns:92px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:14px}
+.thumb{border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;background:var(--surface2);align-self:start;aspect-ratio:3/5}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+@media (max-width:400px){.pcard{grid-template-columns:72px 1fr;gap:10px;padding:12px}}
+
+/* list */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.daygroup h3{font-size:.9rem;color:var(--muted);font-weight:600;margin:20px 0 6px}
+.txlist{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tx{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:12px 14px}
+.tx:last-child{border-bottom:0}
+.dot{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:1.2rem}
+.tx .t1{font-weight:600;display:block}
+.tx .t2{font-size:.88rem;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx .amtx{font-weight:600;white-space:nowrap}
+.fab{position:fixed;right:max(16px,calc(50vw - 364px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:6;border-radius:999px;padding:12px 20px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.empty p{margin:0 0 12px}
+.catrow{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);width:100%;background:transparent;border-left:0;border-right:0;border-top:0;text-align:left}
+.catrow:last-child{border-bottom:0}
+
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs a{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 4px 10px;color:var(--muted);text-decoration:none;font-size:.8rem;font-weight:500}
+nav.tabs a[aria-current="page"]{color:var(--accent);font-weight:700}
+nav.tabs svg{width:24px;height:24px}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--out);color:#fff;font-size:.72rem;font-weight:700;display:grid;place-items:center}
+
+/* dialogs */
+dialog.sheet{border:0;padding:0;width:100%;max-width:560px;margin:auto auto 0;border-radius:22px 22px 0 0;background:var(--surface);color:var(--ink);max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.sheet-in{padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
+.sheet-in h2{margin:0 0 2px;font-size:1.2rem}
+.slipline{display:flex;gap:12px;align-items:center}
+.slipline .thumb{width:64px}
+@media (min-width:640px){dialog.sheet{margin:auto;border-radius:22px}}
+dialog.lb{border:0;padding:0;background:transparent;max-width:96vw;max-height:94vh}
+dialog.lb img{max-height:90vh;border-radius:12px;display:block}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.sw{width:34px;height:34px;border-radius:50%;border:3px solid transparent}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+
+.login{max-width:380px;margin:8vh auto 0;display:grid;gap:6px;text-align:left}
+.login img{border-radius:18px}
+body.signedout nav.tabs{display:none}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:600}
+.gbtn:disabled{opacity:.6}
+.or-line{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.88rem;margin:10px 0 2px}
+.or-line::before,.or-line::after{content:"";flex:1;height:1px;background:var(--line)}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;z-index:20;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand">สมุดรับจ่าย</div>
+  <div class="monthnav" id="monthnav">
+    <button class="iconbtn" data-act="prev" aria-label="เดือนก่อนหน้า">‹</button>
+    <span id="monthLabel"></span>
+    <button class="iconbtn" data-act="next" aria-label="เดือนถัดไป">›</button>
+  </div>
+</div></header>
+<div class="banner" id="banner"></div>
+<main id="view"><p class="muted">กำลังโหลดข้อมูล…</p></main>
+
+<nav class="tabs" aria-label="เมนูหลัก"><div class="in">
+  <a href="#overview" data-v="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M11 4a8 8 0 1 0 9 9h-9z"/><path d="M14 3.2A8 8 0 0 1 20.8 10H14z"/></svg>ภาพรวม</a>
+  <a href="#upload" data-v="upload"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M7 9l5-5 5 5M4 19h16"/></svg>อัปสลิป</a>
+  <a href="#pending" data-v="pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>รอจัดหมวด<span class="badge" id="badge" hidden></span></a>
+  <a href="#list" data-v="list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>รายการ</a>
+</div></nav>
+
+<dialog class="sheet" id="sheet"></dialog>
+<dialog class="lb" id="lightbox"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<input type="file" id="importIn" accept="application/json,.json" hidden>
+
+<script type="module">
+import { firebaseConfig } from "./firebase-config.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, setDoc, deleteDoc, getDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const pad=n=>String(n).padStart(2,"0");
+const dstr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today=()=>dstr(new Date());
+const curYM=()=>today().slice(0,7);
+const fmt=n=>(Math.round(n*100)/100).toLocaleString("th-TH",{minimumFractionDigits:2,maximumFractionDigits:2});
+const monthName=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("th-TH",{month:"long",year:"numeric"})};
+const shortMonth=ym=>{const[y,m]=ym.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("th-TH",{month:"short",year:"2-digit"})};
+const dayLabel=s=>new Date(s+"T00:00:00").toLocaleDateString("th-TH",{weekday:"long",day:"numeric",month:"long"});
+const shiftMonth=(ym,k)=>{const[y,m]=ym.split("-").map(Number);const d=new Date(y,m-1+k,1);return `${d.getFullYear()}-${pad(d.getMonth()+1)}`};
+const parseAmt=a=>parseFloat(String(a??"").replace(/[,\s฿]/g,""));
+
+const COLORS=["#0E7C66","#2563EB","#9333EA","#D97706","#DC2626","#0891B2","#4D7C0F","#DB2777","#64748B"];
+const DEFAULT_CATS=[
+  {id:"food",name:"อาหาร",emoji:"🍜",type:"expense",color:"#D97706"},
+  {id:"travel",name:"เดินทาง",emoji:"🚗",type:"expense",color:"#2563EB"},
+  {id:"shop",name:"ช้อปปิ้ง",emoji:"🛍️",type:"expense",color:"#DB2777"},
+  {id:"bills",name:"บิล/ค่าน้ำไฟ",emoji:"💡",type:"expense",color:"#9333EA"},
+  {id:"home",name:"ที่พัก",emoji:"🏠",type:"expense",color:"#0891B2"},
+  {id:"other",name:"อื่นๆ",emoji:"📦",type:"expense",color:"#64748B"},
+  {id:"salary",name:"เงินเดือน",emoji:"💼",type:"income",color:"#0E7C66"},
+  {id:"extra",name:"รายได้อื่น",emoji:"💰",type:"income",color:"#4D7C0F"}
+];
+
+const S={cats:DEFAULT_CATS.map(c=>({...c})),tx:[],pending:[],month:curYM(),view:"overview",listView:"tx",filter:"all",ready:false,loadErr:false,uploading:0,auth:"loading",user:null,legacy:null,migrating:false};
+const drafts={};
+let B=null;
+let sheetMode=null; // "tx" | "cat"
+let catState=null;
+
+const catOf=id=>S.cats.find(c=>c.id===id)||{id,name:"ไม่มีหมวด",emoji:"❔",color:"#94A3B8",type:""};
+const sortTx=a=>a.sort((x,y)=>(y.date.localeCompare(x.date))||((y.createdAt||0)-(x.createdAt||0)));
+
+/* ---------- storage backends ---------- */
+function blobToDataURL(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
+
+function dataURLToBlob(u){const[h,b]=u.split(",");const mime=(h.match(/data:([^;]+)/)||[])[1]||"image/jpeg";const bin=atob(b);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime})}
+function idbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open("slip-ledger",1);r.onupgradeneeded=()=>{const db=r.result;["tx","pending","images","meta"].forEach(n=>{if(!db.objectStoreNames.contains(n))db.createObjectStore(n)})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function idbDo(db,stores,mode,fn){return new Promise((res,rej)=>{const t=db.transaction(stores,mode);let out;const r=fn(t);if(r&&"onsuccess" in r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})}
+
+/* แปลงรูปให้เล็กพอเก็บในเอกสาร Firestore (จำกัด 1 MB ต่อเอกสาร) */
+async function shrinkToDataURL(blob){
+  for(const [max,q] of [[1100,.62],[900,.5],[700,.45]]){
+    const b=await compress(blob,max,q);const u=await blobToDataURL(b);
+    if(u.length<900000&&u.startsWith("data:image/"))return u;
+  }
+  throw new Error("image too large");
+}
+
+/* แบ่งการเขียนเป็นชุด ชุดละไม่เกิน 400 รายการ */
+async function commitChunks(db,ops){
+  for(let i=0;i<ops.length;i+=400){const b=writeBatch(db);ops.slice(i,i+400).forEach(fn=>fn(b));await b.commit()}
+}
+
+function makeFsBackend(db,uid){
+  const base=`users/${uid}`;
+  const txC=collection(db,base,"tx"),pC=collection(db,base,"pending"),metaD=doc(db,base,"meta","settings");
+  const imgD=id=>doc(db,base,"images",id);
+  const bg=pr=>{pr.catch(e=>{console.error(e);toast(e&&e.code==="permission-denied"?"บัญชีนี้ไม่มีสิทธิ์บันทึกข้อมูล ตรวจกฎความปลอดภัยใน Firebase":"บันทึกขึ้นเซิร์ฟเวอร์ไม่สำเร็จ")});return Promise.resolve()};
+  const unsubs=[];
+  const getImg=async id=>{const sn=await getDoc(imgD(id));const d=sn.data();return d&&d.data?dataURLToBlob(d.data):null};
+  return{
+    start(){
+      const loaded={a:false,t:false,p:false};
+      const timer=setTimeout(()=>{if(!S.ready){S.ready=true;render()}},12000);
+      const mark=k=>{loaded[k]=true;if(loaded.a&&loaded.t&&loaded.p&&!S.ready){S.ready=true;clearTimeout(timer)}render()};
+      const fail=e=>{console.error(e);clearTimeout(timer);S.ready=true;S.loadErr=(e&&e.code==="permission-denied")?"denied":true;render()};
+      unsubs.push(onSnapshot(metaD,sn=>{const d=sn.data();if(d&&Array.isArray(d.cats))S.cats=d.cats.map(c=>({...c}));mark("a")},fail));
+      unsubs.push(onSnapshot(txC,sn=>{S.tx=sortTx(sn.docs.map(d=>({...d.data(),id:d.id})));mark("t")},fail));
+      unsubs.push(onSnapshot(pC,sn=>{S.pending=sn.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));mark("p")},fail));
+    },
+    stop(){unsubs.splice(0).forEach(u=>u())},
+    saveCats(list){S.cats=list;render();return bg(setDoc(metaD,{cats:list}))},
+    putTx:(id,o)=>bg(setDoc(doc(txC,id),o)),
+    delTx:id=>bg(deleteDoc(doc(txC,id))),
+    putPending:(id,o)=>bg(setDoc(doc(pC,id),o)),
+    delPending:id=>bg(deleteDoc(doc(pC,id))),
+    commitPending(pid,tid,o){const b=writeBatch(db);b.set(doc(txC,tid),o);b.delete(doc(pC,pid));return bg(b.commit())},
+    async upload(file){const u=await shrinkToDataURL(file);const id="img"+newId();bg(setDoc(imgD(id),{data:u,createdAt:Date.now()}));return id},
+    getImg,
+    delImg(id){if(!id)return;const u=urlCache.get(id);if(u){URL.revokeObjectURL(u);urlCache.delete(id)}bg(deleteDoc(imgD(id)))},
+    async exportAll(){
+      const images={};const ids=new Set([...S.tx,...S.pending].map(x=>x.slip).filter(Boolean));
+      for(const id of ids){const b=await getImg(id).catch(()=>null);if(b)images[id]=await blobToDataURL(b)}
+      return{app:"slip-ledger",version:1,exportedAt:new Date().toISOString(),cats:S.cats,tx:S.tx,pending:S.pending,images};
+    },
+    async importAll(d){
+      if(!d||d.app!=="slip-ledger"||!Array.isArray(d.cats)||!Array.isArray(d.tx)||!Array.isArray(d.pending))throw new Error("bad file");
+      const oldImgs=[...S.tx,...S.pending].map(x=>x.slip).filter(Boolean);
+      const ops=[];
+      S.tx.forEach(x=>ops.push(b=>b.delete(doc(txC,x.id))));
+      S.pending.forEach(x=>ops.push(b=>b.delete(doc(pC,x.id))));
+      oldImgs.forEach(id=>ops.push(b=>b.delete(imgD(id))));
+      await commitChunks(db,ops);
+      const add=[];
+      for(const [id,u] of Object.entries(d.images||{})){const small=await shrinkToDataURL(dataURLToBlob(u));add.push(b=>b.set(imgD(id),{data:small,createdAt:Date.now()}))}
+      add.push(b=>b.set(metaD,{cats:d.cats}));
+      d.tx.forEach(x=>{const{id,...o}=x;add.push(b=>b.set(doc(txC,id),o))});
+      d.pending.forEach(x=>{const{id,...o}=x;add.push(b=>b.set(doc(pC,id),o))});
+      // รูปทำทีละน้อยเพราะแต่ละรูปใหญ่
+      for(let i=0;i<add.length;i+=20){const b=writeBatch(db);add.slice(i,i+20).forEach(fn=>fn(b));await b.commit()}
+      urlCache.forEach(u=>URL.revokeObjectURL(u));urlCache.clear();
+    },
+    async migrateLegacy(L){
+      const add=[];
+      for(const [id,blob] of L.images){try{const u=await shrinkToDataURL(blob);add.push(b=>b.set(imgD(id),{data:u,createdAt:Date.now()}))}catch(e){}}
+      const have=new Set(S.cats.map(c=>c.id));const merged=[...S.cats,...L.cats.filter(c=>!have.has(c.id))];
+      add.push(b=>b.set(metaD,{cats:merged}));
+      L.tx.forEach(x=>{const{id,...o}=x;add.push(b=>b.set(doc(txC,id),o))});
+      L.pending.forEach(x=>{const{id,...o}=x;add.push(b=>b.set(doc(pC,id),o))});
+      for(let i=0;i<add.length;i+=20){const b=writeBatch(db);add.slice(i,i+20).forEach(fn=>fn(b));await b.commit()}
+    }
+  };
+}
+
+/* ข้อมูลเดิมจากเวอร์ชันที่เก็บในเครื่อง */
+async function readLegacy(){
+  try{
+    if(localStorage.getItem("slip-ledger-migrated"))return null;
+    const db=await idbOpen();
+    const one=(st,fn)=>idbDo(db,st,"readonly",t=>fn(t.objectStore(st)));
+    const [tx,pending,cats]=await Promise.all([one("tx",s=>s.getAll()),one("pending",s=>s.getAll()),one("meta",s=>s.get("cats"))]);
+    if(!(tx&&tx.length)&&!(pending&&pending.length)){db.close();return null}
+    const ids=[...tx,...pending].map(x=>x.slip).filter(Boolean);const images=[];
+    for(const id of ids){const b=await one("images",s=>s.get(id));if(b)images.push([id,b])}
+    db.close();
+    return{tx:tx||[],pending:pending||[],cats:Array.isArray(cats)?cats:[],images};
+  }catch(e){return null}
+}
+
+const urlCache=new Map();
+async function hydrate(root){
+  for(const img of root.querySelectorAll("img[data-img]")){
+    const id=img.dataset.img;img.removeAttribute("data-img");
+    let u=urlCache.get(id);
+    if(!u){const b=B?await B.getImg(id).catch(()=>null):null;if(!b){img.alt="ไม่พบรูปสลิป";continue}u=URL.createObjectURL(b);urlCache.set(id,u)}
+    img.src=u;
+  }
+}
+
+const configured=firebaseConfig&&firebaseConfig.apiKey&&!/ใส่|YOUR/i.test(firebaseConfig.apiKey);
+let auth=null;
+function boot(){
+  render();
+  if(!configured){S.auth="noconfig";render();return}
+  const app=initializeApp(firebaseConfig);
+  let db;
+  try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=getFirestore(app)}
+  auth=getAuth(app);
+  onAuthStateChanged(auth,async u=>{
+    if(B){B.stop();B=null}
+    urlCache.forEach(x=>URL.revokeObjectURL(x));urlCache.clear();
+    S.tx=[];S.pending=[];S.cats=DEFAULT_CATS.map(c=>({...c}));S.ready=false;S.loadErr=false;
+    for(const k in drafts)delete drafts[k];
+    if(sheet.open)sheet.close();
+    if(!u){S.user=null;S.auth="out";render();return}
+    S.user=u;S.auth="in";
+    B=makeFsBackend(db,u.uid);B.start();
+    S.legacy=await readLegacy();render();
+  });
+}
+
+const AUTH_ERR={"auth/invalid-credential":"อีเมลหรือรหัสผ่านไม่ถูกต้อง","auth/wrong-password":"อีเมลหรือรหัสผ่านไม่ถูกต้อง","auth/user-not-found":"อีเมลหรือรหัสผ่านไม่ถูกต้อง","auth/invalid-email":"รูปแบบอีเมลไม่ถูกต้อง","auth/too-many-requests":"ลองผิดหลายครั้งเกินไป รอสักครู่แล้วลองใหม่","auth/network-request-failed":"เชื่อมต่ออินเทอร์เน็ตไม่ได้","auth/user-disabled":"บัญชีนี้ถูกปิดใช้งาน","auth/popup-blocked":"เบราว์เซอร์บล็อกหน้าต่างล็อกอิน อนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองใหม่","auth/unauthorized-domain":"โดเมนนี้ยังไม่ได้เพิ่มใน Authorized domains ของ Firebase","auth/operation-not-allowed":"ยังไม่ได้เปิดการล็อกอินแบบนี้ใน Firebase Authentication","auth/account-exists-with-different-credential":"อีเมลนี้ใช้กับการล็อกอินแบบอื่นอยู่แล้ว"};
+function vLogin(){
+  return `<section class="login">
+    <img src="icons/icon-192.png" width="72" height="72" alt="">
+    <h1>สมุดรับจ่าย</h1>
+    <p class="lede">เข้าสู่ระบบเพื่อดูและบันทึกข้อมูลจากทุกเครื่อง</p>
+    <div class="stack">
+      <p class="neg" id="lgErr" role="alert" style="margin:0;min-height:0"></p>
+      <button class="gbtn" data-act="google"><svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>เข้าสู่ระบบด้วย Google</button>
+      <div class="or-line"><span>หรือใช้อีเมล</span></div>
+      <label class="lbl" for="lgEmail">อีเมล</label>
+      <input class="field" id="lgEmail" type="email" autocomplete="username" inputmode="email">
+      <label class="lbl" for="lgPass">รหัสผ่าน</label>
+      <input class="field" id="lgPass" type="password" autocomplete="current-password">
+      <button class="primary" data-act="login" style="margin-top:6px">เข้าสู่ระบบ</button>
+      <button class="link" data-act="forgot" style="justify-self:center">ลืมรหัสผ่าน</button>
+    </div></section>`;
+}
+function vNoConfig(){
+  return `<section class="login"><h1>ยังไม่ได้เชื่อมต่อ Firebase</h1><p class="lede">ใส่ค่าการตั้งค่าโปรเจกต์ในไฟล์ firebase-config.js แล้วอัปโหลดใหม่ ดูวิธีใน README</p></section>`;
+}
+
+/* ---------- images ---------- */
+async function compress(file,max,q){
+  try{
+    const url=URL.createObjectURL(file);
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,max/Math.max(w,h));
+    const c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);
+    const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",q));
+  }catch(e){return file}
+}
+
+async function handleFiles(list){
+  const files=[...list].filter(f=>f.type.startsWith("image/")||/\.(heic|heif)$/i.test(f.name));
+  if(!files.length){toast("เลือกได้เฉพาะไฟล์รูปภาพ");return}
+  if(!B){toast("รอโหลดข้อมูลสักครู่แล้วลองใหม่");return}
+  S.uploading+=files.length;render();
+  let done=0;
+  for(const f of files){
+    try{
+      const ref=await B.upload(f);
+      const d=f.lastModified?new Date(f.lastModified):new Date();
+      await B.putPending(newId(),{slip:ref,date:dstr(d),createdAt:Date.now()});
+      done++;
+    }catch(e){console.error(e);toast(`อัปโหลด ${f.name} ไม่สำเร็จ`)}
+    S.uploading--;render();
+  }
+  if(done)toast(`ส่ง ${done} สลิปไปที่รอจัดหมวดแล้ว`);
+}
+
+/* ---------- stats ---------- */
+function monthStats(ym){let inc=0,exp=0;for(const t of S.tx)if(t.date.slice(0,7)===ym){if(t.type==="income")inc+=t.amount;else exp+=t.amount}return{inc,exp,bal:inc-exp}}
+function cumulative(ym){let b=0;for(const t of S.tx)if(t.date.slice(0,7)<=ym)b+=t.type==="income"?t.amount:-t.amount;return b}
+function breakdown(ym,type){const m=new Map();let total=0;for(const t of S.tx)if(t.type===type&&t.date.slice(0,7)===ym){m.set(t.catId,(m.get(t.catId)||0)+t.amount);total+=t.amount}return{rows:[...m].map(([id,v])=>({cat:catOf(id),v})).sort((a,b)=>b.v-a.v),total}}
+const signed=(n)=>`<span class="num ${n<0?"neg":""}">${n<0?"−":""}${fmt(Math.abs(n))}</span>`;
+
+/* ---------- views ---------- */
+function vOverview(){
+  const ym=S.month,st=monthStats(ym),cum=cumulative(ym);
+  const bars=type=>{const b=breakdown(ym,type);if(!b.rows.length)return `<p class="empty-line">ยังไม่มี${type==="income"?"รายรับ":"รายจ่าย"}ในเดือนนี้</p>`;
+    return b.rows.map(r=>{const pct=b.total?r.v/b.total*100:0;return `<div class="bar-row"><span>${esc(r.cat.emoji)} ${esc(r.cat.name)} <span class="muted">${pct.toFixed(0)}%</span></span><b class="num">${fmt(r.v)}</b><div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${esc(r.cat.color)}"></div></div></div>`}).join("")};
+  const months=[];for(let i=5;i>=0;i--)months.push(shiftMonth(ym,-i));
+  const rows=months.reverse().map(m=>{const s=monthStats(m);return `<tr data-act="gomonth" data-m="${m}" class="${m===ym?"cur":""}"><td>${esc(shortMonth(m))}</td><td class="num pos">${fmt(s.inc)}</td><td class="num neg">${fmt(s.exp)}</td><td>${signed(s.bal)}</td></tr>`}).join("");
+  const pend=S.pending.length?`<div class="notice"><p>มีสลิป <b>${S.pending.length}</b> ใบรอจัดหมวด</p><a class="primary" href="#pending" style="text-decoration:none">จัดหมวดเลย</a></div>`:"";
+  return `
+  <section class="book" aria-label="สรุป${esc(monthName(ym))}">
+    <div class="book-head"><small>คงเหลือ ${esc(monthName(ym))}</small><div class="bal num">${st.bal<0?"−":""}฿${fmt(Math.abs(st.bal))}</div></div>
+    <div class="book-body">
+      <div class="bline"><span>รายรับ</span><b class="num pos">+${fmt(st.inc)}</b></div>
+      <div class="bline"><span>รายจ่าย</span><b class="num neg">−${fmt(st.exp)}</b></div>
+      <div class="bline"><span class="muted">ยอดสะสมถึงสิ้นเดือน</span><b>${signed(cum)}</b></div>
+    </div>
+  </section>
+  ${pend}
+  <h2>รายจ่ายตามหมวด</h2><div class="bars">${bars("expense")}</div>
+  <h2>รายรับตามหมวด</h2><div class="bars">${bars("income")}</div>
+  <h2>สรุปรายเดือน</h2>
+  <div class="tablewrap"><table><thead><tr><th>เดือน</th><th>รายรับ</th><th>รายจ่าย</th><th>คงเหลือ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function vUpload(){
+  return `
+  <h1>อัปสลิป</h1>
+  <p class="lede">เลือกรูปสลิปได้ครั้งละหลายรูป สลิปจะไปรออยู่ที่หน้ารอจัดหมวด ให้ตรวจยอดและเลือกหมวดก่อนบันทึก</p>
+  <button class="drop" id="drop" data-act="pick">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg>
+    <strong>เลือกรูปสลิป</strong><span class="muted">แตะเพื่อเลือกจากคลังรูป หรือลากไฟล์มาวางตรงนี้</span>
+  </button>
+  ${S.uploading?`<div class="progress">กำลังอัปโหลด เหลืออีก ${S.uploading} รูป…</div>`:""}
+  ${S.pending.length&&!S.uploading?`<div class="progress">มีสลิปรอจัดหมวด ${S.pending.length} ใบ · <a href="#pending" class="link">ไปจัดหมวด</a></div>`:""}
+  <div class="alt">ไม่มีสลิป? <button class="ghost" data-act="addtx">เพิ่มรายการเอง</button></div>`;
+}
+
+function formFields(id,d){
+  const cats=S.cats.filter(c=>c.type===d.type);
+  return `
+  <div class="seg" role="group" aria-label="ประเภท">
+    <button data-act="dtype" data-id="${id}" data-t="expense" aria-pressed="${d.type==="expense"}">รายจ่าย</button>
+    <button data-act="dtype" data-id="${id}" data-t="income" aria-pressed="${d.type==="income"}">รายรับ</button>
+  </div>
+  <label class="amt"><span>฿</span><input inputmode="decimal" autocomplete="off" data-f="amount" data-id="${id}" placeholder="ใส่จำนวนเงิน" value="${esc(d.amount)}" aria-label="จำนวนเงิน"></label>
+  <input class="field" type="date" data-f="date" data-id="${id}" value="${esc(d.date)}" aria-label="วันที่">
+  <div class="lbl">หมวดหมู่</div>
+  <div class="chips">${cats.map(c=>`<button class="chip" data-act="dcat" data-id="${id}" data-c="${esc(c.id)}" aria-pressed="${d.catId===c.id}">${esc(c.emoji)} ${esc(c.name)}</button>`).join("")}<button class="chip add" data-act="newcat" data-id="${id}">+ หมวดใหม่</button></div>
+  <input class="field" data-f="note" data-id="${id}" placeholder="บันทึกเพิ่มเติม (ไม่บังคับ)" value="${esc(d.note)}" aria-label="บันทึกเพิ่มเติม">`;
+}
+
+function vPending(){
+  if(!S.pending.length)return `<h1>รอจัดหมวด</h1><div class="empty"><p>ไม่มีสลิปค้างอยู่</p><a class="primary" href="#upload" style="text-decoration:none;display:inline-block">อัปสลิป</a></div>`;
+  return `<h1>รอจัดหมวด</h1><p class="lede">${S.pending.length} สลิป · ตรวจยอดเงิน เลือกหมวด แล้วกดบันทึก</p>`+
+  S.pending.map(p=>{
+    const d=drafts[p.id]||(drafts[p.id]={type:"expense",amount:p.amount!=null?String(p.amount):"",date:p.date||today(),catId:"",note:""});
+    return `<article class="pcard">
+      <button class="thumb" data-act="zoom" data-ref="${esc(p.slip)}" aria-label="ดูสลิปขนาดใหญ่"><img data-img="${esc(p.slip)}" alt="สลิป"></button>
+      <div class="stack">${formFields(p.id,d)}
+        <div class="row"><button class="ghost danger" data-act="pdel" data-id="${p.id}">ลบสลิป</button><span class="spacer"></span><button class="primary" data-act="psave" data-id="${p.id}">บันทึก</button></div>
+      </div></article>`}).join("");
+}
+
+function vList(){
+  const seg=`<div class="seg" role="group" aria-label="มุมมอง"><button data-act="lview" data-v="tx" aria-pressed="${S.listView==="tx"}">รายการ</button><button data-act="lview" data-v="cat" aria-pressed="${S.listView==="cat"}">หมวดหมู่</button><button data-act="lview" data-v="settings" aria-pressed="${S.listView==="settings"}">ตั้งค่า</button></div>`;
+  if(S.listView==="settings"){
+    const n=S.tx.length,np=S.pending.length,L=S.legacy;
+    const mig=L?`<h2>ย้ายข้อมูลเดิมในเครื่อง</h2>
+    <p class="lede">พบข้อมูลจากเวอร์ชันก่อนในเครื่องนี้ ${L.tx.length} รายการ และสลิปรอจัดหมวด ${L.pending.length} ใบ ย้ายขึ้นบัญชีนี้ได้ ข้อมูลที่มีอยู่แล้วในบัญชีจะไม่หาย</p>
+    <div class="row" style="justify-content:flex-start"><button class="primary" data-act="migrate" ${S.migrating?"disabled":""}>${S.migrating?"กำลังย้าย…":"ย้ายข้อมูลขึ้นบัญชี"}</button><button class="ghost" data-act="skipmig">ไม่ต้องย้าย</button></div>`:"";
+    return `<div class="toolbar">${seg}</div>
+    <h2>บัญชี</h2>
+    <p class="muted" style="margin:0 0 10px">เข้าสู่ระบบด้วย ${esc(S.user&&S.user.email)}</p>
+    <div class="row" style="justify-content:flex-start"><button class="ghost danger" data-act="logout">ออกจากระบบ</button></div>
+    ${mig}
+    <h2>สำรองข้อมูล</h2>
+    <p class="lede">ข้อมูลซิงก์อยู่บน Firebase แล้ว แต่สำรองเป็นไฟล์เก็บไว้ด้วยก็ได้ ตอนนี้มี ${n} รายการ และสลิปรอจัดหมวด ${np} ใบ</p>
+    <div class="row" style="justify-content:flex-start"><button class="primary" data-act="export">สำรองเป็นไฟล์</button></div>
+    <h2>กู้คืนจากไฟล์</h2>
+    <p class="lede">เลือกไฟล์สำรอง (.json) ข้อมูลในบัญชีตอนนี้จะถูกแทนที่ทั้งหมด ต้องเชื่อมต่ออินเทอร์เน็ตระหว่างกู้คืน</p>
+    <div class="row" style="justify-content:flex-start"><button class="ghost" data-act="import">เลือกไฟล์สำรอง</button></div>`;
+  }
+  if(S.listView==="cat"){
+    const grp=type=>{const cs=S.cats.filter(c=>c.type===type);return `<h2>${type==="income"?"หมวดรายรับ":"หมวดรายจ่าย"}</h2><div class="txlist">${cs.map(c=>{const n=S.tx.filter(t=>t.catId===c.id).length;return `<button class="catrow" data-act="editcat" data-c="${esc(c.id)}"><span class="dot" style="background:${esc(c.color)}22">${esc(c.emoji)}</span><span><span class="t1" style="font-weight:600">${esc(c.name)}</span></span><span class="muted">${n} รายการ</span></button>`}).join("")||'<p class="empty-line" style="padding:14px">ยังไม่มีหมวด</p>'}</div><div class="row" style="margin-top:10px;justify-content:flex-start"><button class="ghost" data-act="newcat" data-t="${type}">+ เพิ่มหมวด${type==="income"?"รายรับ":"รายจ่าย"}</button></div>`};
+    return `<div class="toolbar">${seg}</div>${grp("expense")}${grp("income")}`;
+  }
+  const ym=S.month;
+  let items=S.tx.filter(t=>t.date.slice(0,7)===ym);
+  if(S.filter!=="all")items=items.filter(t=>t.type===S.filter);
+  const st=monthStats(ym);
+  const filt=`<div class="chips">${[["all","ทั้งหมด"],["income","รายรับ"],["expense","รายจ่าย"]].map(([k,l])=>`<button class="chip" data-act="filter" data-k="${k}" aria-pressed="${S.filter===k}">${l}</button>`).join("")}</div>`;
+  let body;
+  if(!items.length){body=`<div class="empty"><p>ยังไม่มีรายการใน${esc(monthName(ym))}</p><button class="primary" data-act="addtx">เพิ่มรายการ</button></div>`}
+  else{
+    const g=new Map();for(const t of items){if(!g.has(t.date))g.set(t.date,[]);g.get(t.date).push(t)}
+    body=[...g].map(([day,ts])=>`<div class="daygroup"><h3>${esc(dayLabel(day))}</h3><div class="txlist">${ts.map(t=>{const c=catOf(t.catId);const inc=t.type==="income";return `<button class="tx" data-act="edittx" data-id="${esc(t.id)}"><span class="dot" style="background:${esc(c.color)}22">${esc(c.emoji)}</span><span style="min-width:0"><span class="t1">${esc(c.name)}${t.slip?' <span class="muted" title="มีสลิป">🧾</span>':""}</span>${t.note?`<span class="t2">${esc(t.note)}</span>`:""}</span><span class="amtx num ${inc?"pos":"neg"}">${inc?"+":"−"}${fmt(t.amount)}</span></button>`}).join("")}</div></div>`).join("");
+  }
+  return `<div class="toolbar">${seg}${filt}</div>
+    <p class="muted num" style="margin:10px 0 0">รับ <span class="pos">${fmt(st.inc)}</span> · จ่าย <span class="neg">${fmt(st.exp)}</span> · คงเหลือ ${signed(st.bal)}</p>
+    ${body}<button class="primary fab" data-act="addtx">+ เพิ่มรายการ</button>`;
+}
+
+function render(){
+  const view=$("#view");
+  const ae=document.activeElement;let key=null,sel=null;
+  if(ae&&ae.dataset&&ae.dataset.f&&view.contains(ae)){key=`[data-id="${ae.dataset.id}"][data-f="${ae.dataset.f}"]`;try{sel=[ae.selectionStart,ae.selectionEnd]}catch(e){}}
+  document.querySelectorAll("nav.tabs a").forEach(a=>{if(a.dataset.v===S.view)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+  const badge=$("#badge");badge.hidden=!S.pending.length;badge.textContent=S.pending.length;
+  $("#monthnav").hidden=!(S.view==="overview"||(S.view==="list"&&S.listView==="tx"));
+  $("#monthLabel").textContent=monthName(S.month);
+  const msgs=[];
+  if(S.loadErr===true)msgs.push("โหลดข้อมูลไม่สำเร็จ ตรวจการเชื่อมต่ออินเทอร์เน็ตแล้วเปิดแอปใหม่");
+  if(S.auth==="in"&&S.legacy&&S.view!=="list")msgs.push("พบข้อมูลเดิมในเครื่องนี้ ไปที่ รายการ → ตั้งค่า เพื่อย้ายขึ้นบัญชี");
+  $("#banner").innerHTML=msgs.map(m=>`<p>${esc(m)}</p>`).join("");
+  const out=S.auth!=="in";document.body.classList.toggle("signedout",out);
+  if(out){$("#banner").innerHTML="";$("#monthnav").hidden=true;
+    if(S.auth==="out"){if(!view.querySelector("#lgEmail"))view.innerHTML=vLogin()}
+    else view.innerHTML=S.auth==="noconfig"?vNoConfig():`<p class="muted">กำลังโหลด…</p>`;
+    return}
+  if(!S.ready){view.innerHTML=`<p class="muted">กำลังโหลดข้อมูล…</p>`;return}
+  if(S.loadErr==="denied"){document.body.classList.add("signedout");$("#monthnav").hidden=true;
+    view.innerHTML=`<section class="login"><h1>บัญชีนี้ไม่มีสิทธิ์เข้าถึง</h1><p class="lede">${esc(S.user&&S.user.email)} ไม่ใช่อีเมลที่อนุญาตไว้ในกฎความปลอดภัยของ Firebase ออกจากระบบแล้วลองใช้บัญชีอื่น</p><button class="primary" data-act="logout2">ออกจากระบบ</button></section>`;return}
+  view.innerHTML=S.view==="upload"?vUpload():S.view==="pending"?vPending():S.view==="list"?vList():vOverview();
+  hydrate(view);
+  if(key){const el=view.querySelector(key);if(el){el.focus();try{if(sel&&sel[0]!=null)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+}
+
+/* ---------- sheets ---------- */
+const sheet=$("#sheet");
+function defaultDate(){return S.month===curYM()?today():S.month+"-01"}
+function openTx(tx){
+  sheetMode="tx";
+  drafts.__s=tx?{_id:tx.id,type:tx.type,amount:String(tx.amount),date:tx.date,catId:tx.catId,note:tx.note||"",slip:tx.slip||null,createdAt:tx.createdAt}:{_id:null,type:"expense",amount:"",date:defaultDate(),catId:"",note:"",slip:null};
+  renderSheet();if(!sheet.open)sheet.showModal();
+}
+function openCat(cat,returnTo,type){
+  sheetMode="cat";
+  catState=cat?{...cat,_edit:true,returnTo}:{id:null,name:"",emoji:"🏷️",type:type||"expense",color:COLORS[S.cats.length%COLORS.length],_edit:false,returnTo};
+  renderSheet();if(!sheet.open)sheet.showModal();
+}
+function renderSheet(){
+  if(sheetMode==="tx"){
+    const d=drafts.__s;
+    sheet.innerHTML=`<div class="sheet-in"><h2>${d._id?"แก้ไขรายการ":"เพิ่มรายการ"}</h2>
+      ${d.slip?`<div class="slipline"><button class="thumb" data-act="zoom" data-ref="${esc(d.slip)}" aria-label="ดูสลิป"><img data-img="${esc(d.slip)}" alt="สลิป"></button><span class="muted">แตะรูปเพื่อดูสลิป</span></div>`:""}
+      ${formFields("__s",d)}
+      <div class="row">${d._id?'<button class="ghost danger" data-act="sdel">ลบ</button>':""}<span class="spacer"></span><button class="ghost" data-act="close">ยกเลิก</button><button class="primary" data-act="ssave">บันทึก</button></div></div>`;
+    hydrate(sheet);
+  }else{
+    const c=catState;
+    sheet.innerHTML=`<div class="sheet-in"><h2>${c._edit?"แก้ไขหมวดหมู่":"หมวดหมู่ใหม่"}</h2>
+      <div class="seg" role="group" aria-label="ประเภท"><button data-act="ctype" data-t="expense" aria-pressed="${c.type==="expense"}">รายจ่าย</button><button data-act="ctype" data-t="income" aria-pressed="${c.type==="income"}">รายรับ</button></div>
+      <div style="display:grid;grid-template-columns:72px 1fr;gap:10px">
+        <input class="field" data-cf="emoji" value="${esc(c.emoji)}" aria-label="อีโมจิ" style="text-align:center;font-size:1.3rem">
+        <input class="field" data-cf="name" value="${esc(c.name)}" placeholder="ชื่อหมวด เช่น กาแฟ" aria-label="ชื่อหมวด">
+      </div>
+      <div class="lbl">สี</div>
+      <div class="swatches">${COLORS.map(col=>`<button class="sw" data-act="ccolor" data-col="${col}" style="background:${col}" aria-label="สี ${col}" aria-pressed="${c.color===col}"></button>`).join("")}</div>
+      <div class="row">${c._edit?'<button class="ghost danger" data-act="cdel">ลบหมวด</button>':""}<span class="spacer"></span><button class="ghost" data-act="cback">ยกเลิก</button><button class="primary" data-act="csave">บันทึก</button></div></div>`;
+  }
+}
+function afterCat(newCatId){
+  const r=catState&&catState.returnTo;catState=null;
+  if(r==="__s"){sheetMode="tx";if(newCatId){const d=drafts.__s;const nc=catOf(newCatId);if(nc.type===d.type)d.catId=newCatId}renderSheet();return}
+  sheet.close();
+  if(r&&drafts[r]&&newCatId){const nc=catOf(newCatId);if(nc.type===drafts[r].type)drafts[r].catId=newCatId}
+  render();
+}
+sheet.addEventListener("close",()=>{sheetMode=null;catState=null});
+
+function zoom(ref){const lb=$("#lightbox");lb.innerHTML=`<img data-img="${esc(ref)}" alt="สลิป">`;hydrate(lb);lb.showModal()}
+$("#lightbox").addEventListener("click",e=>e.currentTarget.close());
+
+let toastT;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600)}
+
+/* ---------- actions ---------- */
+async function saveDraftAsTx(d,id,slip,createdAt){
+  const amt=parseAmt(d.amount);
+  if(!(amt>0)){toast("ใส่จำนวนเงินก่อนบันทึก");return false}
+  if(!d.catId){toast("เลือกหมวดหมู่ก่อนบันทึก");return false}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d.date||"")){toast("เลือกวันที่ก่อนบันทึก");return false}
+  return {type:d.type,amount:Math.round(amt*100)/100,date:d.date,catId:d.catId,note:(d.note||"").trim(),slip:slip||null,createdAt:createdAt||Date.now()};
+}
+function armed(el,msg){
+  if(el.dataset.armed){return true}
+  el.dataset.armed="1";const old=el.textContent;el.textContent="แตะอีกครั้งเพื่อยืนยัน";if(msg)toast(msg);
+  setTimeout(()=>{if(el.isConnected){delete el.dataset.armed;el.textContent=old}},3500);return false;
+}
+const rerenderFor=id=>id==="__s"?renderSheet():render();
+
+document.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;
+  const a=el.dataset.act,id=el.dataset.id;
+  try{
+  switch(a){
+    case "prev":S.month=shiftMonth(S.month,-1);render();break;
+    case "next":S.month=shiftMonth(S.month,1);render();break;
+    case "gomonth":S.month=el.dataset.m;render();break;
+    case "pick":$("#fileIn").click();break;
+    case "zoom":zoom(el.dataset.ref);break;
+    case "dtype":{const d=drafts[id];if(d.type!==el.dataset.t){d.type=el.dataset.t;d.catId=""}rerenderFor(id);break}
+    case "dcat":{drafts[id].catId=el.dataset.c;rerenderFor(id);break}
+    case "newcat":openCat(null,id||null,id?drafts[id].type:el.dataset.t);break;
+    case "editcat":openCat(S.cats.find(c=>c.id===el.dataset.c),null);break;
+    case "psave":{const p=S.pending.find(x=>x.id===id);if(!p)break;el.disabled=true;
+      const o=await saveDraftAsTx(drafts[id],null,p.slip,null);
+      if(o){await B.commitPending(id,newId(),o);delete drafts[id];toast("บันทึกแล้ว")}else el.disabled=false;break}
+    case "pdel":{const p=S.pending.find(x=>x.id===id);if(!p||!armed(el))break;B.delImg(p.slip);await B.delPending(id);delete drafts[id];toast("ลบสลิปแล้ว");break}
+    case "addtx":openTx(null);break;
+    case "edittx":openTx(S.tx.find(t=>t.id===id));break;
+    case "ssave":{const d=drafts.__s;el.disabled=true;const o=await saveDraftAsTx(d,null,d.slip,d.createdAt);
+      if(o){await B.putTx(d._id||newId(),o);sheet.close();toast(d._id?"แก้ไขแล้ว":"บันทึกแล้ว")}else el.disabled=false;break}
+    case "sdel":{const d=drafts.__s;if(!armed(el))break;if(d.slip)B.delImg(d.slip);await B.delTx(d._id);sheet.close();toast("ลบรายการแล้ว");break}
+    case "close":sheet.close();break;
+    case "login":{const em=$("#lgEmail").value.trim(),pw=$("#lgPass").value,er=$("#lgErr");
+      if(!em||!pw){er.textContent="ใส่อีเมลและรหัสผ่าน";break}
+      el.disabled=true;er.textContent="";
+      try{await signInWithEmailAndPassword(auth,em,pw)}catch(x){er.textContent=AUTH_ERR[x.code]||"เข้าสู่ระบบไม่สำเร็จ ลองอีกครั้ง";el.disabled=false}
+      break}
+    case "forgot":{const em=$("#lgEmail").value.trim(),er=$("#lgErr");if(!em){er.textContent="ใส่อีเมลก่อน แล้วกดลืมรหัสผ่านอีกครั้ง";break}
+      try{await sendPasswordResetEmail(auth,em);toast("ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลแล้ว")}catch(x){er.textContent=AUTH_ERR[x.code]||"ส่งอีเมลไม่สำเร็จ"}
+      break}
+    case "google":{const er=$("#lgErr");er.textContent="";el.disabled=true;
+      try{const pr=new GoogleAuthProvider();pr.setCustomParameters({prompt:"select_account"});await signInWithPopup(auth,pr)}
+      catch(x){if(x.code!=="auth/popup-closed-by-user"&&x.code!=="auth/cancelled-popup-request")er.textContent=AUTH_ERR[x.code]||"เข้าสู่ระบบด้วย Google ไม่สำเร็จ ลองอีกครั้ง";if(el.isConnected)el.disabled=false}
+      break}
+    case "logout2":await signOut(auth);break;
+    case "logout":{if(!armed(el))break;await signOut(auth);location.hash="#overview";break}
+    case "migrate":{if(!S.legacy)break;S.migrating=true;render();
+      try{await B.migrateLegacy(S.legacy);localStorage.setItem("slip-ledger-migrated","1");S.legacy=null;toast("ย้ายข้อมูลขึ้นบัญชีแล้ว")}
+      catch(x){console.error(x);toast("ย้ายไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่")}
+      S.migrating=false;render();break}
+    case "skipmig":{if(!armed(el))break;localStorage.setItem("slip-ledger-migrated","1");S.legacy=null;render();break}
+    case "export":{el.disabled=true;toast("กำลังเตรียมไฟล์…");
+      const data=await B.exportAll();const name=`slip-ledger-backup-${today()}.json`;
+      const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+      const file=new File([blob],name,{type:"application/json"});
+      let shared=false;
+      if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});shared=true}catch(err){if(err&&err.name==="AbortError")shared=true}}
+      if(!shared){const u=URL.createObjectURL(blob);const link=document.createElement("a");link.href=u;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+      el.disabled=false;break}
+    case "import":{if((S.tx.length||S.pending.length)&&!armed(el,"ข้อมูลในเครื่องตอนนี้จะถูกแทนที่ทั้งหมด"))break;$("#importIn").click();break}
+    case "lview":S.listView=el.dataset.v;render();break;
+    case "filter":S.filter=el.dataset.k;render();break;
+    case "ctype":catState.type=el.dataset.t;renderSheet();break;
+    case "ccolor":catState.color=el.dataset.col;renderSheet();break;
+    case "cback":afterCat(null);break;
+    case "csave":{const c=catState;const name=(c.name||"").trim();if(!name){toast("ตั้งชื่อหมวดก่อนบันทึก");break}
+      if(S.cats.some(x=>x.id!==c.id&&x.type===c.type&&x.name===name)){toast("มีหมวดชื่อนี้อยู่แล้ว");break}
+      const obj={id:c.id||("c"+newId()),name,emoji:(c.emoji||"").trim()||"🏷️",type:c.type,color:c.color};
+      const list=c._edit?S.cats.map(x=>x.id===obj.id?obj:x):[...S.cats,obj];
+      S.cats=list;await B.saveCats(list);toast(c._edit?"แก้ไขหมวดแล้ว":"เพิ่มหมวดแล้ว");afterCat(obj.id);break}
+    case "cdel":{const c=catState;const n=S.tx.filter(t=>t.catId===c.id).length;
+      if(!armed(el,n?`รายการ ${n} รายการในหมวดนี้จะกลายเป็นไม่มีหมวด`:""))break;
+      const list=S.cats.filter(x=>x.id!==c.id);S.cats=list;await B.saveCats(list);toast("ลบหมวดแล้ว");afterCat(null);break}
+  }
+  }catch(err){console.error(err);toast("ทำรายการไม่สำเร็จ ลองอีกครั้ง");el.disabled=false}
+});
+
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.target.id==="lgPass"||e.target.id==="lgEmail")){const b=document.querySelector('[data-act="login"]');if(b&&!b.disabled)b.click()}});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.f&&drafts[t.dataset.id])drafts[t.dataset.id][t.dataset.f]=t.value;
+  if(t.dataset.cf&&catState)catState[t.dataset.cf]=t.value;
+});
+$("#importIn").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+  let d;try{d=JSON.parse(await f.text());if(d.app!=="slip-ledger")throw 0}catch(err){toast("ไฟล์นี้ไม่ใช่ไฟล์สำรองของสมุดรับจ่าย");return}
+  toast("กำลังกู้คืน…");
+  try{await B.importAll(d);toast("กู้คืนเรียบร้อย")}catch(err){console.error(err);toast("กู้คืนไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่")}
+});
+$("#fileIn").addEventListener("change",e=>{const f=e.target.files;if(f&&f.length)handleFiles(f);e.target.value=""});
+document.addEventListener("dragover",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d){e.preventDefault();d.classList.add("over")}});
+document.addEventListener("dragleave",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d)d.classList.remove("over")});
+document.addEventListener("drop",e=>{const d=e.target.closest&&e.target.closest("#drop");if(d){e.preventDefault();d.classList.remove("over");handleFiles(e.dataTransfer.files)}});
+
+const VIEWS=["overview","upload","pending","list"];
+function route(){const h=location.hash.slice(1);S.view=VIEWS.includes(h)?h:"overview";render();window.scrollTo(0,0)}
+window.addEventListener("hashchange",route);
+S.view=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"overview";
+boot();
+// ล้าง service worker ของเวอร์ชันแอปเดิม (ถ้ามี) เพื่อให้โหลดเว็บเวอร์ชันล่าสุดเสมอ
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{})}
+})();
+</script>
+</body>
+</html>
